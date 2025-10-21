@@ -4,7 +4,8 @@ Release:        1
 Summary:        Brave Web Browser (mirrored binary)
 License:        MPL-2.0
 URL:            https://brave.com/
-Source0:        brave-browser-%{version}-1.x86_64.rpm.bz2
+# This Source0 is now DYNAMIC. It gets the version from the tag above.
+Source0:        https://github.com/brave/brave-browser/releases/download/v%{version}/brave-browser-%{version}-1.x86_64.rpm
 
 ExclusiveArch:  x86_64
 AutoReqProv:    no
@@ -21,17 +22,19 @@ Brave is a privacy-focused web browser based on Chromium.
 This package is a direct mirror of the official Brave binary release for Fedora/openSUSE.
 
 %prep
-# Empty - we are repackaging a binary RPM, no source to unpack.
+# Unpack the .rpm file directly into the build directory
+rpm2cpio %{_sourcedir}/brave-browser-%{version}-1.x86_64.rpm | cpio -idmv
 
 %build
 # Nothing to build
 
 %install
-# Unpack the .rpm file directly into the buildroot
+# Copy the unpacked files from %prep into the buildroot
 cd %{buildroot}
-bzcat %{_sourcedir}/brave-browser-%{version}-1.x86_64.rpm.bz2 | rpm2cpio | cpio -idmv
+cp -a %{_builddir}/usr %{buildroot}/
+cp -a %{_builddir}/opt %{buildroot}/
 
-# Fix desktop files using sed (more reliable than desktop-file-edit)
+# Fix desktop files using sed
 sed -i 's/^Type=.*/Type=Application/' %{buildroot}/usr/share/applications/brave-browser.desktop
 sed -i 's/^Type=.*/Type=Application/' %{buildroot}/usr/share/applications/com.brave.Browser.desktop
 
@@ -43,7 +46,7 @@ if ! grep -q '^Type=' %{buildroot}/usr/share/applications/com.brave.Browser.desk
     echo "Type=Application" >> %{buildroot}/usr/share/applications/com.brave.Browser.desktop
 fi
 
-# Remove problematic cron job (Brave updates itself internally)
+# Remove problematic cron job
 rm -f %{buildroot}/etc/cron.daily/brave-browser
 
 %post
@@ -75,7 +78,3 @@ fi
 %dir /usr/share/gnome-control-center/default-apps
 
 %changelog
-* Mon Oct 20 2025 itachi_re <xanbenson99@gmail.com> 1.83.118-1
-- Mirrored Brave browser binary from GitHub
-- Fixed RPMLint errors: removed cron job, fixed desktop files with sed
-- Added fdupes to handle duplicate man pages in posttrans
