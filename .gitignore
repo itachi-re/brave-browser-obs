@@ -1,0 +1,6 @@
+# OBS source service files
+_service.*
+
+# RPM build files
+*.rpm
+*.bz2
