@@ -1,0 +1,7 @@
+# rpmlintrc - Filter false positives for Brave browser
+addFilter("filelist-forbidden-opt")
+addFilter("permissions-file-setuid-bit")
+addFilter("cron-file-unauthorized")
+addFilter("invalid-desktopfile")
+addFilter("invalid-appdata-file")
+addFilter("files-duplicate")

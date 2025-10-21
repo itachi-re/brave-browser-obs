@@ -1,0 +1,10 @@
+<services>
+  <service name="download_url">
+    <param name="url">https://github.com/brave/brave-browser/releases/download/v1.83.118/brave-browser-1.83.118-1.x86_64.rpm</param>
+    <param name="filename">brave-browser-1.83.118-1.x86_64.rpm</param>
+  </service>
+  <service name="recompress">
+    <param name="file">*.rpm</param>
+    <param name="compression">bz2</param>
+  </service>
+</services>
