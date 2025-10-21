@@ -4,14 +4,17 @@ Release:        1
 Summary:        Brave Web Browser (mirrored binary)
 License:        MPL-2.0
 URL:            https://brave.com/
-# This Source0 is now DYNAMIC. It gets the version from the tag above.
-Source0:        https://github.com/brave/brave-browser/releases/download/v%{version}/brave-browser-%{version}-1.x86_64.rpm
+
+#
+# === THIS IS THE FIX ===
+# The real filename uses "linux-amd64", not "x86_64"
+#
+Source0:        https://github.com/brave/brave-browser/releases/download/v%{version}/brave-browser-%{version}-linux-amd64.rpm
 
 ExclusiveArch:  x86_64
 AutoReqProv:    no
 Conflicts:      brave-browser-beta brave-browser-nightly
 
-# Required dependencies
 Requires:       crontabs
 Requires:       /bin/bash
 Requires:       fdupes
@@ -22,14 +25,20 @@ Brave is a privacy-focused web browser based on Chromium.
 This package is a direct mirror of the official Brave binary release for Fedora/openSUSE.
 
 %prep
-# Unpack the .rpm file directly into the build directory
-rpm2cpio %{_sourcedir}/brave-browser-%{version}-1.x86_64.rpm | cpio -idmv
+#
+# === THIS IS THE FIX ===
+# Unpack the correct .rpm filename from Source0
+#
+rpm2cpio %{_sourcedir}/brave-browser-%{version}-linux-amd64.rpm | cpio -idmv
 
 %build
 # Nothing to build
 
 %install
+#
+# === THIS IS THE FIX ===
 # Copy the unpacked files from %prep into the buildroot
+#
 cd %{buildroot}
 cp -a %{_builddir}/usr %{buildroot}/
 cp -a %{_builddir}/opt %{buildroot}/
