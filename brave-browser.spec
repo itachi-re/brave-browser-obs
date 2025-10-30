@@ -9,7 +9,7 @@ URL:            https://brave.com/
 # === THIS IS THE FIX ===
 # The real filename uses "linux-amd64", not "x86_64"
 #
-Source0:        https://github.com/brave/brave-browser/releases/download/v%{version}/brave-browser-%{version}-linux-amd64.rpm
+Source0:        https://github.com/brave/brave-browser/releases/download/v%{version}/brave-browser-%{version}-x86_64.rpm
 
 ExclusiveArch:  x86_64
 AutoReqProv:    no
