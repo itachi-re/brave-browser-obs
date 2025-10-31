@@ -25,11 +25,9 @@ Brave is a privacy-focused web browser based on Chromium.
 This package is a direct mirror of the official Brave binary release for Fedora/openSUSE.
 
 %prep
-#
-# === THIS IS THE FIX ===
-# Unpack the correct .rpm filename from Source0
-#
-rpm2cpio %{Source0} | cpio -idmv
+rpm2cpio %{_sourcedir}/brave-browser-%{version}-1.x86_64.rpm | cpio -idmv
+#rpm2cpio %{Source0} | cpio -idmv
+# Unpack the correct .rpm filename, which matches Source0
 
 %build
 # Nothing to build
