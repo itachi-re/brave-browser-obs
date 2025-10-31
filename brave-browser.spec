@@ -29,7 +29,7 @@ This package is a direct mirror of the official Brave binary release for Fedora/
 # === THIS IS THE FIX ===
 # Unpack the correct .rpm filename from Source0
 #
-rpm2cpio %{_sourcedir}/brave-browser-%{version}-linux-amd64.rpm | cpio -idmv
+rpm2cpio %{Source0} | cpio -idmv
 
 %build
 # Nothing to build
