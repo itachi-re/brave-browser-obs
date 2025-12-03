@@ -1,28 +1,24 @@
 name: Check for Brave Browser Updates
-
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 9 * * *'   # daily at 09:00 UTC
   push:
     branches: [main]
-
 permissions:
   contents: write
-
 jobs:
   update-brave:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
-- name: Skip if commit is from the bot
-  if: github.actor == 'github-actions[bot]'
-  run: |
-    echo "Triggered by bot commit — skipping."
-    exit 0
+      
+      - name: Skip if commit is from the bot
+        if: github.actor == 'github-actions[bot]'
+        run: |
+          echo "Triggered by bot commit — skipping."
+          exit 0
       
       - name: Read current version from spec
         id: spec
@@ -30,7 +26,7 @@ jobs:
           CURR=$(grep -i '^Version:' brave-browser.spec | awk '{print $2}')
           echo "Current spec version: $CURR"
           echo "current=$CURR" >> $GITHUB_OUTPUT
-
+      
       - name: Fetch latest Brave version
         id: remote
         run: |
@@ -42,10 +38,9 @@ jobs:
             echo "Failed to fetch latest Brave version."
             exit 1
           fi
-
           echo "Latest upstream version: $LATEST"
           echo "remote=$LATEST" >> $GITHUB_OUTPUT
-
+      
       - name: Compare versions
         id: cmp
         run: |
@@ -60,21 +55,18 @@ jobs:
             echo "update=false" >> $GITHUB_OUTPUT
             echo "No update required."
           fi
-
+      
       - name: Update spec + commit
         if: steps.cmp.outputs.update == 'true'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
           NEW="${{ steps.remote.outputs.remote }}"
-
           echo "Updating spec file to version $NEW…"
-
           # Replace entire Version/Release lines safely
           sed -i "s/^Version:[[:space:]]*.*/Version:        $NEW/" brave-browser.spec
           sed -i "s/^Release:[[:space:]]*.*/Release:        1/" brave-browser.spec
-
           git add brave-browser.spec
           git commit -m "Auto-update Brave to $NEW" || echo "No changes to commit"
           git push
+        
