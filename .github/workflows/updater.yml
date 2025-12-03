@@ -3,74 +3,78 @@ name: Check for Brave Browser Updates
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 9 * * *' # Runs daily at 09:00 UTC
+    - cron: '0 9 * * *'   # daily at 09:00 UTC
   push:
-    branches:
-      - main
+    branches: [main]
 
 permissions:
   contents: write
 
 jobs:
-  check-version:
+  update-brave:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Get Current Version from Spec
+- name: Skip if commit is from the bot
+  if: github.actor == 'github-actions[bot]'
+  run: |
+    echo "Triggered by bot commit — skipping."
+    exit 0
+      
+      - name: Read current version from spec
         id: spec
         run: |
-          CURRENT_VERSION=$(grep -i '^Version:' brave-browser.spec | awk '{print $2}')
-          echo "Current spec version: $CURRENT_VERSION"
-          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          CURR=$(grep -i '^Version:' brave-browser.spec | awk '{print $2}')
+          echo "Current spec version: $CURR"
+          echo "current=$CURR" >> $GITHUB_OUTPUT
 
-      - name: Fetch Latest Version from GitHub API
+      - name: Fetch latest Brave version
         id: remote
         run: |
-          # Uses the GitHub API to get the "tag_name" and strips the "v"
-          LATEST_VERSION=$(curl -sL https://api.github.com/repos/brave/brave-browser/releases/latest | \
-                           grep '"tag_name":' | \
-                           sed -E 's/.*"tag_name": "v?([^"]+)".*/\1/' | \
-                           head -n 1)
+          LATEST=$(curl -sL https://api.github.com/repos/brave/brave-browser/releases/latest \
+            | grep '"tag_name":' \
+            | sed -E 's/.*"tag_name": "v?([^"]+)".*/\1/' )
           
-          if [ -z "$LATEST_VERSION" ]; then
-            echo "Failed to fetch latest version."
+          if [ -z "$LATEST" ]; then
+            echo "Failed to fetch latest Brave version."
             exit 1
           fi
-          
-          echo "Latest remote version: $LATEST_VERSION"
-          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Compare Versions
-        id: compare
+          echo "Latest upstream version: $LATEST"
+          echo "remote=$LATEST" >> $GITHUB_OUTPUT
+
+      - name: Compare versions
+        id: cmp
         run: |
-          SPEC_VER="${{ steps.spec.outputs.version }}"
-          REMOTE_VER="${{ steps.remote.outputs.version }}"
+          A="${{ steps.spec.outputs.current }}"
+          B="${{ steps.remote.outputs.remote }}"
           
-          if [ "$(printf '%s\n' "$SPEC_VER" "$REMOTE_VER" | sort -V | tail -n 1)" == "$REMOTE_VER" ] && [ "$SPEC_VER" != "$REMOTE_VER" ]; then
-            echo "Newer remote version found! Proceeding with update."
+          # dpkg version comparison is reliable and already in ubuntu-latest
+          if dpkg --compare-versions "$B" gt "$A"; then
             echo "update=true" >> $GITHUB_OUTPUT
+            echo "Upstream newer → update required."
           else
-            echo "Spec version is the same or newer. No update needed."
             echo "update=false" >> $GITHUB_OUTPUT
+            echo "No update required."
           fi
 
-      - name: Update Spec File and Push
-        if: steps.compare.outputs.update == 'true'
+      - name: Update spec + commit
+        if: steps.cmp.outputs.update == 'true'
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          OLD_VER="${{ steps.spec.outputs.version }}"
-          NEW_VER="${{ steps.remote.outputs.version }}"
-          
-          echo "Updating spec file from $OLD_VER to $NEW_VER..."
-          
-          sed -i "s/^Version:.*$OLD_VER/Version:        $NEW_VER/" brave-browser.spec
-          sed -i "s/^Release:.*$/Release:        1/" brave-browser.spec
-          
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          NEW="${{ steps.remote.outputs.remote }}"
+
+          echo "Updating spec file to version $NEW…"
+
+          # Replace entire Version/Release lines safely
+          sed -i "s/^Version:[[:space:]]*.*/Version:        $NEW/" brave-browser.spec
+          sed -i "s/^Release:[[:space:]]*.*/Release:        1/" brave-browser.spec
+
           git add brave-browser.spec
-          git commit -m "Automated version bump to $NEW_VER"
+          git commit -m "Auto-update Brave to $NEW" || echo "No changes to commit"
           git push
-          echo "Pushed updated spec file to repository."
