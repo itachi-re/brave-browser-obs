@@ -33,25 +33,23 @@ rpm2cpio %{_sourcedir}/brave-browser-%{version}-1.x86_64.rpm | cpio -idmv
 # Nothing to build
 
 %install
-#
-# === THIS IS THE FIX ===
-# Copy the unpacked files from %prep into the buildroot
-#
+# Copy the unpacked files
 cd %{buildroot}
 cp -a %{_builddir}/usr %{buildroot}/
 cp -a %{_builddir}/opt %{buildroot}/
 
-# Fix desktop files using sed
+# === FIX STARTS HERE ===
+# Remove the duplicate Flatpak-style desktop file
+rm -f %{buildroot}/usr/share/applications/com.brave.Browser.desktop
+
+# Fix the remaining desktop file (brave-browser.desktop)
 sed -i 's/^Type=.*/Type=Application/' %{buildroot}/usr/share/applications/brave-browser.desktop
-sed -i 's/^Type=.*/Type=Application/' %{buildroot}/usr/share/applications/com.brave.Browser.desktop
 
 # Ensure Type field exists if it's missing
 if ! grep -q '^Type=' %{buildroot}/usr/share/applications/brave-browser.desktop; then
     echo "Type=Application" >> %{buildroot}/usr/share/applications/brave-browser.desktop
 fi
-if ! grep -q '^Type=' %{buildroot}/usr/share/applications/com.brave.Browser.desktop; then
-    echo "Type=Application" >> %{buildroot}/usr/share/applications/com.brave.Browser.desktop
-fi
+# === FIX ENDS HERE ===
 
 # Remove problematic cron job
 rm -f %{buildroot}/etc/cron.daily/brave-browser
@@ -73,7 +71,6 @@ fi
 /usr/bin/brave-browser-stable
 /usr/share/appdata/brave-browser.appdata.xml
 /usr/share/applications/brave-browser.desktop
-/usr/share/applications/com.brave.Browser.desktop
 /usr/share/gnome-control-center/default-apps/brave-browser.xml
 /usr/share/man/man1/brave-browser-stable.1.gz
 /usr/share/man/man1/brave-browser.1.gz
