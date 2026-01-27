@@ -12,5 +12,5 @@ jobs:
       - name: Trigger OBS service
         run: |
           curl -X POST \
-            -u itachi:${{sR1Hgtw4b1sCuogr331FojKD}} \
-            "https://api.opensuse.org/source/home:itachi/brave-browser?cmd=runservice"
+            -u itachi_re:${{ sR1Hgtw4b1sCuogr331FojKD }} \
+            "https://api.opensuse.org/source/home:itachi_re/brave-browser?cmd=runservice"
