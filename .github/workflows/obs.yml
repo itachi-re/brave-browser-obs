@@ -1,0 +1,16 @@
+name: Trigger OBS Build
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  obs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger OBS service
+        run: |
+          curl -X POST \
+            -u itachi:${{ secrets.OBS_TOKEN }} \
+            "https://api.opensuse.org/source/home:itachi/brave-browser?cmd=runservice"
