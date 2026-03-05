@@ -1,5 +1,5 @@
 Name:           brave-browser
-Version:        1.87.191
+Version:        1.87.192
 Release:        1
 Summary:        Brave Web Browser (mirrored binary)
 License:        MPL-2.0
