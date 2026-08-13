@@ -19,7 +19,7 @@
 %global __spec_install_post %{nil}
 
 Name:           brave-browser
-Version:        1.93.134
+Version:        1.93.136
 Release:        1
 Summary:        Brave Web Browser (mirrored binary)
 License:        MPL-2.0
